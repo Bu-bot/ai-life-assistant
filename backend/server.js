@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const speechToText = require('./services/speechToText');
 const aiProcessor = require('./services/aiProcessor');
+const database = require('./services/database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,47 +33,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// In-memory storage for demo (use database in production)
-let recordings = [
-    {
-        id: 1,
-        timestamp: new Date(Date.now() - 3600000),
-        text: "Reminder: Call the dentist tomorrow to schedule a cleaning appointment. Also need to pick up groceries - milk, eggs, and bread.",
-        entities: {
-            tasks: ["call dentist", "pick up groceries"],
-            items: ["milk", "eggs", "bread"],
-            people: ["dentist"],
-            dates: ["tomorrow"]
-        }
-    },
-    {
-        id: 2,
-        timestamp: new Date(Date.now() - 7200000),
-        text: "Had lunch with Sarah today. She mentioned she's looking for a new job in marketing and asked if I know anyone at tech companies.",
-        entities: {
-            people: ["Sarah"],
-            topics: ["job search", "marketing", "tech companies"],
-            events: ["lunch"]
-        }
-    },
-    {
-        id: 3,
-        timestamp: new Date(Date.now() - 10800000),
-        text: "Bob's birthday party is this Saturday at 7 PM. Need to bring a bottle of wine. His address is 123 Oak Street.",
-        entities: {
-            people: ["Bob"],
-            events: ["birthday party"],
-            dates: ["Saturday"],
-            times: ["7 PM"],
-            locations: ["123 Oak Street"],
-            tasks: ["bring wine"]
-        }
-    }
-];
-
 // Routes
-app.get('/api/recordings', (req, res) => {
-    res.json(recordings.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+app.get('/api/recordings', async (req, res) => {
+    try {
+        const recordings = await database.getAllRecordings();
+        res.json(recordings);
+    } catch (error) {
+        console.error('Error fetching recordings:', error);
+        res.status(500).json({ error: 'Failed to fetch recordings' });
+    }
 });
 
 app.post('/api/recordings', upload.single('audio'), async (req, res) => {
@@ -92,22 +61,20 @@ app.post('/api/recordings', upload.single('audio'), async (req, res) => {
             return res.status(400).json({ error: 'No audio file or text provided' });
         }
 
-        // Extract entities and context
+        if (!transcription || transcription.trim() === '') {
+            return res.status(400).json({ error: 'Failed to transcribe audio - no text detected' });
+        }
+
+        // Extract entities and context using AI
         const entities = await aiProcessor.extractEntities(transcription);
         
-        const newRecording = {
-            id: recordings.length + 1,
-            timestamp: new Date(),
-            text: transcription,
-            entities: entities
-        };
-
-        recordings.push(newRecording);
+        // Save to database
+        const newRecording = await database.saveRecording(transcription, entities);
         
         res.json(newRecording);
     } catch (error) {
         console.error('Error processing recording:', error);
-        res.status(500).json({ error: 'Failed to process recording' });
+        res.status(500).json({ error: 'Failed to process recording. Please try again.' });
     }
 });
 
@@ -119,22 +86,82 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: 'Question is required' });
         }
 
+        // Get all recordings from database
+        const recordings = await database.getAllRecordings();
+
+        if (recordings.length === 0) {
+            return res.json({ 
+                response: "I don't have any recordings to search through yet. Try recording something first, then ask me questions about it!" 
+            });
+        }
+
         // Generate response based on recordings
         const response = await aiProcessor.generateResponse(question, recordings);
         
         res.json({ response });
     } catch (error) {
         console.error('Error generating response:', error);
-        res.status(500).json({ error: 'Failed to generate response' });
+        res.status(500).json({ error: 'Sorry, I had trouble understanding your question. Please try again.' });
     }
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+// Analytics endpoint for future dashboard
+app.get('/api/analytics', async (req, res) => {
+    try {
+        const timeframe = req.query.timeframe || '30 days';
+        const analytics = await database.getAnalytics(timeframe);
+        res.json(analytics);
+    } catch (error) {
+        console.error('Error fetching analytics:', error);
+        res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+});
+
+// Search endpoint
+app.get('/api/search', async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+        
+        const results = await database.searchRecordings(q);
+        res.json(results);
+    } catch (error) {
+        console.error('Error searching recordings:', error);
+        res.status(500).json({ error: 'Search failed' });
+    }
+});
+
+// Health check with database status
+app.get('/api/health', async (req, res) => {
+    try {
+        const recordings = await database.getAllRecordings();
+        res.json({ 
+            status: 'OK', 
+            timestamp: new Date().toISOString(),
+            database: 'connected',
+            recordings_count: recordings.length
+        });
+    } catch (error) {
+        res.json({
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            database: 'error',
+            error: error.message
+        });
+    }
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('Shutting down gracefully...');
+    await database.close();
+    process.exit(0);
 });
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
+    console.log('Database connection will be tested on first request');
 });

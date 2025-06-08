@@ -9,12 +9,15 @@ class SpeechToTextService {
     }
 
     async transcribeAudio(audioFilePath) {
-        try {
-            if (!this.openaiApiKey) {
-                console.warn('OpenAI API key not found, using mock transcription');
-                return this.mockTranscription();
-            }
+        if (!this.openaiApiKey) {
+            throw new Error('OpenAI API key not configured. Speech-to-text unavailable.');
+        }
 
+        if (!fs.existsSync(audioFilePath)) {
+            throw new Error('Audio file not found');
+        }
+
+        try {
             const formData = new FormData();
             formData.append('file', fs.createReadStream(audioFilePath));
             formData.append('model', 'whisper-1');
@@ -31,26 +34,25 @@ class SpeechToTextService {
                 }
             );
 
-            return response.data.text.trim();
-        } catch (error) {
-            console.error('Transcription error:', error.message);
-            return this.mockTranscription();
-        }
-    }
+            const transcription = response.data.text.trim();
+            
+            if (!transcription) {
+                throw new Error('No speech detected in audio');
+            }
 
-    mockTranscription() {
-        const mockTexts = [
-            "Just remembered I need to water the plants tomorrow morning.",
-            "Meeting with the team about the project proposal next Tuesday at 2 PM.",
-            "Mom called - family dinner this Sunday at 6. Need to bring dessert.",
-            "Car needs an oil change soon. Mechanic shop closes at 5 PM on weekdays.",
-            "Grocery list: apples, chicken breast, yogurt, and pasta sauce.",
-            "Doctor appointment scheduled for Friday at 10 AM. Don't forget insurance card.",
-            "Called Mike about the weekend camping trip. He's bringing the tent and sleeping bags.",
-            "Need to finish quarterly report by end of week. Schedule meeting with accounting team."
-        ];
-        
-        return mockTexts[Math.floor(Math.random() * mockTexts.length)];
+            return transcription;
+        } catch (error) {
+            if (error.response?.status === 429) {
+                throw new Error('Speech-to-text service is busy. Please try again in a moment.');
+            } else if (error.response?.status === 401) {
+                throw new Error('Invalid API key for speech-to-text service.');
+            } else if (error.message.includes('No speech detected')) {
+                throw new Error('No speech detected in the recording. Please try speaking more clearly.');
+            } else {
+                console.error('Transcription error:', error.message);
+                throw new Error('Failed to transcribe audio. Please try again.');
+            }
+        }
     }
 }
 

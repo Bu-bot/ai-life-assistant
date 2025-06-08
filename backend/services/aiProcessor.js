@@ -5,14 +5,19 @@ class AIProcessor {
     constructor() {
         this.openaiApiKey = process.env.OPENAI_API_KEY;
         this.apiUrl = 'https://api.openai.com/v1/chat/completions';
+        
+        // Cost control settings
+        this.MAX_RECORDINGS_PER_QUERY = 15; // Maximum recordings to send per question
+        this.MAX_CONTEXT_LENGTH = 3000; // Maximum characters of context
     }
 
     async extractEntities(text) {
-        try {
-            if (!this.openaiApiKey) {
-                return this.mockEntityExtraction(text);
-            }
+        if (!this.openaiApiKey) {
+            console.warn('OpenAI API key not found for entity extraction');
+            return {};
+        }
 
+        try {
             const prompt = `Extract structured information from this personal recording:
 "${text}"
 
@@ -26,12 +31,14 @@ Return a JSON object with these categories (only include if present):
 - items: shopping lists, objects mentioned
 - topics: main subjects discussed
 
-Example: {"people": ["John"], "tasks": ["call dentist"], "dates": ["tomorrow"]}`;
+Example: {"people": ["John"], "tasks": ["call dentist"], "dates": ["tomorrow"]}
+
+Return only valid JSON, no other text.`;
 
             const response = await axios.post(this.apiUrl, {
                 model: 'gpt-3.5-turbo',
                 messages: [
-                    { role: 'system', content: 'You are a helpful assistant that extracts structured information from text. Always return valid JSON.' },
+                    { role: 'system', content: 'You are a helpful assistant that extracts structured information from text. Always return valid JSON only.' },
                     { role: 'user', content: prompt }
                 ],
                 max_tokens: 300,
@@ -47,36 +54,130 @@ Example: {"people": ["John"], "tasks": ["call dentist"], "dates": ["tomorrow"]}`
             return JSON.parse(result);
         } catch (error) {
             console.error('Entity extraction error:', error.message);
-            return this.mockEntityExtraction(text);
+            return {};
         }
     }
 
-    async generateResponse(question, recordings) {
-        try {
-            if (!this.openaiApiKey) {
-                return this.mockResponse(question, recordings);
+    // Smart context filtering to reduce costs
+    filterRelevantRecordings(question, recordings) {
+        if (!recordings || recordings.length === 0) return [];
+
+        const questionLower = question.toLowerCase();
+        const questionWords = questionLower.split(/\s+/).filter(word => word.length > 2);
+        
+        // Score recordings by relevance
+        const scoredRecordings = recordings.map(recording => {
+            let score = 0;
+            const recordingText = recording.text.toLowerCase();
+            const recordingAge = Date.now() - new Date(recording.timestamp).getTime();
+            const daysOld = recordingAge / (1000 * 60 * 60 * 24);
+            
+            // Score based on keyword matches
+            questionWords.forEach(word => {
+                if (recordingText.includes(word)) {
+                    score += 10;
+                }
+            });
+            
+            // Score based on entity matches
+            if (recording.entities) {
+                Object.values(recording.entities).forEach(entityArray => {
+                    if (Array.isArray(entityArray)) {
+                        entityArray.forEach(entity => {
+                            if (questionLower.includes(entity.toLowerCase())) {
+                                score += 15; // Higher weight for entity matches
+                            }
+                        });
+                    }
+                });
             }
+            
+            // Boost recent recordings slightly
+            if (daysOld < 7) score += 2;
+            if (daysOld < 1) score += 3;
+            
+            return { ...recording, relevanceScore: score };
+        });
+        
+        // Sort by relevance and take top recordings
+        const relevantRecordings = scoredRecordings
+            .filter(r => r.relevanceScore > 0) // Only include recordings with some relevance
+            .sort((a, b) => b.relevanceScore - a.relevanceScore)
+            .slice(0, this.MAX_RECORDINGS_PER_QUERY);
+        
+        // If no relevant recordings found, include recent ones
+        if (relevantRecordings.length === 0) {
+            return recordings
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, Math.min(5, recordings.length));
+        }
+        
+        console.log(`Filtered ${recordings.length} recordings down to ${relevantRecordings.length} relevant ones`);
+        return relevantRecordings;
+    }
 
-            const context = recordings.map(r => 
-                `[${r.timestamp.toLocaleDateString()}] ${r.text}`
-            ).join('\n');
+    // Trim context to stay within character limits
+    trimContext(recordings) {
+        let context = '';
+        let usedRecordings = 0;
+        
+        for (const recording of recordings) {
+            const recordingText = `[${new Date(recording.timestamp).toLocaleDateString()}] ${recording.text}\n`;
+            
+            if (context.length + recordingText.length > this.MAX_CONTEXT_LENGTH) {
+                break;
+            }
+            
+            context += recordingText;
+            usedRecordings++;
+        }
+        
+        console.log(`Using ${usedRecordings} recordings (${context.length} characters) for context`);
+        return context;
+    }
 
-            const prompt = `You are a personal AI assistant. Answer the user's question based on their recorded information.
+    async generateResponse(question, recordings) {
+        if (!this.openaiApiKey) {
+            return "I need an OpenAI API key to provide intelligent responses. Currently running without AI capabilities.";
+        }
 
-Personal recordings:
+        if (!recordings || recordings.length === 0) {
+            return "I don't have any recordings to search through yet. Try recording something first!";
+        }
+
+        try {
+            // Step 1: Filter for relevant recordings only
+            const relevantRecordings = this.filterRelevantRecordings(question, recordings);
+            
+            if (relevantRecordings.length === 0) {
+                return `I searched through your ${recordings.length} recordings but couldn't find anything relevant to "${question}". Try asking about topics you've actually recorded, or record something new first!`;
+            }
+            
+            // Step 2: Trim context to stay within limits
+            const context = this.trimContext(relevantRecordings);
+            
+            const prompt = `You are a personal AI assistant. Answer the user's question based ONLY on their recorded information below.
+
+Personal recordings (most relevant shown):
 ${context}
 
 User question: ${question}
 
-Provide a helpful, specific answer based on the recordings. If no relevant information is found, say so politely and suggest what type of information would be helpful to record.`;
+Instructions:
+- Provide a helpful, specific answer based only on the recordings above
+- If the recordings don't contain enough information to fully answer the question, say so
+- Be concise but thorough
+- Reference specific recordings when relevant (by date if helpful)
+- Do not make up information not present in the recordings
+- Note: I've only shown you the most relevant recordings to keep costs down`;
 
             const response = await axios.post(this.apiUrl, {
                 model: 'gpt-3.5-turbo',
                 messages: [
-                    { role: 'system', content: 'You are a helpful personal assistant that answers questions based on the user\'s recorded information.' },
+                    { role: 'system', content: 'You are a helpful personal assistant that answers questions based strictly on the user\'s recorded information. Never make up information.' },
                     { role: 'user', content: prompt }
                 ],
-                max_tokens: 300,
+                max_tokens: 400,
                 temperature: 0.3
             }, {
                 headers: {
@@ -85,56 +186,43 @@ Provide a helpful, specific answer based on the recordings. If no relevant infor
                 }
             });
 
-            return response.data.choices[0].message.content.trim();
+            const aiResponse = response.data.choices[0].message.content.trim();
+            
+            // Add context info for transparency
+            const contextInfo = relevantRecordings.length < recordings.length 
+                ? `\n\n💡 *Searched ${recordings.length} recordings, showing answer based on ${relevantRecordings.length} most relevant ones.*`
+                : '';
+            
+            return aiResponse + contextInfo;
+
         } catch (error) {
             console.error('Response generation error:', error.message);
-            return this.mockResponse(question, recordings);
+            
+            if (error.response?.status === 429) {
+                return "I'm currently experiencing high demand. Please try again in a moment.";
+            } else if (error.response?.status === 401) {
+                return "There's an issue with my API authentication. Please check the configuration.";
+            } else {
+                return "I encountered an error while processing your question. Please try again.";
+            }
         }
     }
 
-    mockEntityExtraction(text) {
-        const entities = {};
-        const words = text.toLowerCase().split(' ');
+    // Get cost estimation for transparency
+    estimateTokenUsage(question, recordings) {
+        const relevantRecordings = this.filterRelevantRecordings(question, recordings);
+        const context = this.trimContext(relevantRecordings);
         
-        // Simple keyword matching for demo
-        const peopleKeywords = ['sarah', 'bob', 'mike', 'mom', 'dad', 'john', 'mary'];
-        const taskKeywords = ['need', 'remember', 'call', 'buy', 'pick up', 'schedule'];
-        const timeKeywords = ['tomorrow', 'today', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        // Rough token estimation (1 token ≈ 4 characters)
+        const estimatedTokens = Math.ceil((question.length + context.length + 200) / 4);
+        const estimatedCost = estimatedTokens * 0.0000015; // GPT-3.5-turbo pricing
         
-        entities.people = peopleKeywords.filter(person => text.toLowerCase().includes(person));
-        
-        if (taskKeywords.some(task => words.includes(task))) {
-            entities.tasks = ['extracted task from recording'];
-        }
-        
-        entities.dates = timeKeywords.filter(time => words.includes(time));
-        
-        return entities;
-    }
-
-    mockResponse(question, recordings) {
-        const lowerQuestion = question.toLowerCase();
-        
-        // Simple keyword matching for demo
-        if (lowerQuestion.includes('bob') || lowerQuestion.includes('party')) {
-            return "Based on your recordings, Bob's birthday party is this Saturday at 7 PM at 123 Oak Street. You mentioned you need to bring a bottle of wine.";
-        } else if (lowerQuestion.includes('sarah') || lowerQuestion.includes('job')) {
-            return "You had lunch with Sarah recently. She's looking for a new job in marketing and asked if you know anyone at tech companies.";
-        } else if (lowerQuestion.includes('dentist') || lowerQuestion.includes('appointment')) {
-            return "You recorded a reminder to call the dentist tomorrow to schedule a cleaning appointment.";
-        } else if (lowerQuestion.includes('groceries') || lowerQuestion.includes('shopping')) {
-            return "You need to pick up groceries: milk, eggs, and bread.";
-        } else if (lowerQuestion.includes('tasks') || lowerQuestion.includes('todo')) {
-            const tasks = [];
-            recordings.forEach(r => {
-                if (r.entities && r.entities.tasks) {
-                    tasks.push(...r.entities.tasks);
-                }
-            });
-            return tasks.length > 0 ? `Here are your tasks: ${tasks.join(', ')}` : "I don't see any specific tasks in your recordings yet.";
-        } else {
-            return `I searched through your ${recordings.length} recordings but couldn't find specific information about "${question}". Try asking about Bob's party, Sarah's job search, your dentist appointment, or general tasks.`;
-        }
+        return {
+            totalRecordings: recordings.length,
+            relevantRecordings: relevantRecordings.length,
+            estimatedTokens,
+            estimatedCostUSD: estimatedCost.toFixed(6)
+        };
     }
 }
 
