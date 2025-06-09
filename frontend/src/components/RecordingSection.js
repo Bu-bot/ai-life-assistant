@@ -38,10 +38,9 @@ const RecordingSection = ({ recordings, onNewRecording }) => {
       }, 120000);
 
     } catch (error) {
-      console.error('Error accessing microphone:', error);
-      setStatus('Microphone access denied. Please allow microphone access and try again.');
-    }
-  };
+  console.error('Error accessing microphone:', error);
+  setStatus(`iOS Debug: ${error.name} - ${error.message}`);
+};
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
