@@ -70,9 +70,9 @@ const RecordingSection = ({ recordings, onNewRecording }) => {
         throw new Error(errorData.error || 'Failed to save recording');
       }
     } catch (error) {
-      console.error('Error processing recording:', error);
-      setStatus(`Error: ${error.message}`);
-    }
+  console.error('Error processing recording:', error);
+  setStatus(`Processing Error: ${error.name} - ${error.message}`);
+}
 
     setTimeout(() => setStatus('Ready to record'), 3000);
   };
