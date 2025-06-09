@@ -509,3 +509,203 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Add to your App.css */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.login-form {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.login-form h1 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 2.5em;
+}
+
+.login-form p {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.password-input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 1.1em;
+  margin-bottom: 20px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.password-input:focus {
+  border-color: #667eea;
+}
+
+.login-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s ease;
+}
+
+.login-btn:hover {
+  background: #5a6fd8;
+}
+
+.auth-error {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+}
+
+.login-footer {
+  margin-top: 20px;
+  color: #999;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Add to your App.css */
+
+.input-mode-switcher {
+  display: flex;
+  background: #f1f3f4;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 4px;
+}
+
+.mode-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.mode-btn.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.mode-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.text-input-controls {
+  margin-bottom: 30px;
+}
+
+.text-input-area {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 1em;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.text-input-area:focus {
+  border-color: #667eea;
+}
+
+.text-input-area:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.text-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-submit-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.text-submit-btn:hover:not(:disabled) {
+  background: #5a6fd8;
+}
+
+.text-submit-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.text-hint {
+  font-size: 0.85em;
+  color: #666;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .text-input-footer {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .text-hint {
+    text-align: center;
+  }
+}

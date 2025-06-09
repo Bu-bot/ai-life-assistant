@@ -5,6 +5,9 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
   const [isRecording, setIsRecording] = useState(false);
   const [status, setStatus] = useState('Ready to record');
   const [deletingIds, setDeletingIds] = useState(new Set());
+  const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
+  const [textInput, setTextInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
@@ -40,7 +43,12 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
 
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      setStatus(`iOS Debug: ${error.name} - ${error.message}`);
+      setStatus(`Microphone error: ${error.message}`);
+      // Suggest text input if voice fails
+      setTimeout(() => {
+        setStatus('Try using text input instead →');
+        setInputMode('text');
+      }, 3000);
     }
   };
 
@@ -76,6 +84,52 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
     }
 
     setTimeout(() => setStatus('Ready to record'), 3000);
+  };
+
+  const submitTextInput = async () => {
+    if (!textInput.trim()) return;
+
+    setIsSubmitting(true);
+    setStatus('Saving text...');
+
+    try {
+      const response = await fetch('https://ai-life-assistant-api-production.up.railway.app/api/recordings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: textInput.trim() })
+      });
+
+      if (response.ok) {
+        const newRecording = await response.json();
+        onNewRecording(newRecording);
+        setTextInput('');
+        setStatus('Text saved successfully!');
+        setTimeout(() => setStatus('Ready to record'), 2000);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save text');
+      }
+    } catch (error) {
+      console.error('Error saving text:', error);
+      setStatus(`Error: ${error.message}`);
+      setTimeout(() => setStatus('Ready to record'), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTextSubmit = (e) => {
+    e.preventDefault();
+    submitTextInput();
+  };
+
+  const handleTextKeyPress = (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      submitTextInput();
+    }
   };
 
   const deleteRecording = async (recordingId) => {
@@ -128,20 +182,74 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
       <h2 className="section-title">
         📹 Quick Capture
       </h2>
-      
-      <div className="recording-controls">
+
+      {/* Input Mode Switcher */}
+      <div className="input-mode-switcher">
         <button 
-          className={`record-btn ${isRecording ? 'recording' : ''}`}
-          onClick={toggleRecording}
-          disabled={status.includes('Processing')}
+          className={`mode-btn ${inputMode === 'voice' ? 'active' : ''}`}
+          onClick={() => setInputMode('voice')}
         >
-          {isRecording ? '⏹️ Stop' : '🎤 Record'}
+          🎤 Voice
         </button>
-        
-        <div className="status">
-          {status}
-        </div>
+        <button 
+          className={`mode-btn ${inputMode === 'text' ? 'active' : ''}`}
+          onClick={() => setInputMode('text')}
+        >
+          ✏️ Text
+        </button>
       </div>
+      
+      {/* Voice Recording Mode */}
+      {inputMode === 'voice' && (
+        <div className="recording-controls">
+          <button 
+            className={`record-btn ${isRecording ? 'recording' : ''}`}
+            onClick={toggleRecording}
+            disabled={status.includes('Processing')}
+          >
+            {isRecording ? '⏹️ Stop' : '🎤 Record'}
+          </button>
+          
+          <div className="status">
+            {status}
+          </div>
+        </div>
+      )}
+
+      {/* Text Input Mode */}
+      {inputMode === 'text' && (
+        <div className="text-input-controls">
+          <form onSubmit={handleTextSubmit}>
+            <textarea
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              onKeyDown={handleTextKeyPress}
+              placeholder="Type your thoughts, tasks, or memories here... (Ctrl+Enter to save)"
+              className="text-input-area"
+              rows="4"
+              disabled={isSubmitting}
+            />
+            
+            <div className="text-input-footer">
+              <button 
+                type="submit" 
+                className="text-submit-btn"
+                disabled={!textInput.trim() || isSubmitting}
+              >
+                {isSubmitting ? '💾 Saving...' : '💾 Save Text'}
+              </button>
+              
+              <div className="text-hint">
+                💡 Press Ctrl+Enter to save quickly
+              </div>
+            </div>
+          </form>
+          
+          <div className="status">
+            {status}
+          </div>
+        </div>
+      )}
       
       <div className="recordings-list">
         <h3>Recent Recordings ({recordings.length})</h3>
@@ -183,7 +291,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
         ) : (
           <div className="no-recordings">
             <p>📝 No recordings yet</p>
-            <p>Press the record button above to start capturing your thoughts and memories!</p>
+            <p>Use voice recording or text input to start capturing your thoughts and memories!</p>
           </div>
         )}
       </div>
