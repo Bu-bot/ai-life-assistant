@@ -1,9 +1,10 @@
 // frontend/src/components/RecordingSection.js
 import React, { useState, useRef } from 'react';
 
-const RecordingSection = ({ recordings, onNewRecording }) => {
+const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [status, setStatus] = useState('Ready to record');
+  const [deletingIds, setDeletingIds] = useState(new Set());
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
@@ -38,9 +39,9 @@ const RecordingSection = ({ recordings, onNewRecording }) => {
       }, 120000);
 
     } catch (error) {
-  console.error('Error accessing microphone:', error);
-  setStatus(`iOS Debug: ${error.name} - ${error.message}`);
-}
+      console.error('Error accessing microphone:', error);
+      setStatus(`iOS Debug: ${error.name} - ${error.message}`);
+    }
   };
 
   const stopRecording = () => {
@@ -70,11 +71,44 @@ const RecordingSection = ({ recordings, onNewRecording }) => {
         throw new Error(errorData.error || 'Failed to save recording');
       }
     } catch (error) {
-  console.error('Error processing recording:', error);
-  setStatus(`Processing Error: ${error.name} - ${error.message}`);
-}
+      console.error('Error processing recording:', error);
+      setStatus(`Processing Error: ${error.name} - ${error.message}`);
+    }
 
     setTimeout(() => setStatus('Ready to record'), 3000);
+  };
+
+  const deleteRecording = async (recordingId) => {
+    if (!window.confirm('Are you sure you want to delete this recording?')) {
+      return;
+    }
+
+    setDeletingIds(prev => new Set(prev).add(recordingId));
+
+    try {
+      const response = await fetch(`https://ai-life-assistant-api-production.up.railway.app/api/recordings/${recordingId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        onDeleteRecording(recordingId);
+        setStatus('Recording deleted successfully!');
+        setTimeout(() => setStatus('Ready to record'), 2000);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete recording');
+      }
+    } catch (error) {
+      console.error('Error deleting recording:', error);
+      setStatus(`Delete error: ${error.message}`);
+      setTimeout(() => setStatus('Ready to record'), 3000);
+    } finally {
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(recordingId);
+        return newSet;
+      });
+    }
   };
 
   const toggleRecording = () => {
@@ -115,12 +149,24 @@ const RecordingSection = ({ recordings, onNewRecording }) => {
         {recordings.length > 0 ? (
           recordings.slice(0, 10).map((recording) => (
             <div key={recording.id} className="recording-item">
-              <div className="recording-time">
-                {formatTimestamp(recording.timestamp)}
+              <div className="recording-header">
+                <div className="recording-time">
+                  {formatTimestamp(recording.timestamp)}
+                </div>
+                <button
+                  className="delete-btn"
+                  onClick={() => deleteRecording(recording.id)}
+                  disabled={deletingIds.has(recording.id)}
+                  title="Delete recording"
+                >
+                  {deletingIds.has(recording.id) ? '⏳' : '🗑️'}
+                </button>
               </div>
+              
               <div className="recording-text">
                 {recording.text}
               </div>
+              
               {recording.entities && Object.keys(recording.entities).length > 0 && (
                 <div className="recording-entities">
                   {Object.entries(recording.entities).map(([key, values]) => (
