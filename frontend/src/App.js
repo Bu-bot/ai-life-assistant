@@ -1,194 +1,69 @@
-// frontend/src/components/RecordingSection.js
-import React, { useState, useRef } from 'react';
+// frontend/src/App.js
+import React, { useState, useEffect } from 'react';
+import RecordingSection from './components/RecordingSection';
+import ChatSection from './components/ChatSection';
+import './App.css';
 
-const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [status, setStatus] = useState('Ready to record');
-  const [deletingIds, setDeletingIds] = useState(new Set());
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+function App() {
+  const [recordings, setRecordings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const startRecording = async () => {
+  useEffect(() => {
+    fetchRecordings();
+  }, []);
+
+  const fetchRecordings = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        processRecording(audioBlob);
-        
-        // Stop all tracks to release microphone
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-      setStatus('Recording... speak now!');
-      
-      // Auto-stop after 2 minutes
-      setTimeout(() => {
-        if (isRecording) {
-          stopRecording();
-        }
-      }, 120000);
-
+      const response = await fetch('https://ai-life-assistant-api-production.up.railway.app/api/recordings');
+      const data = await response.json();
+      setRecordings(data);
     } catch (error) {
-      console.error('Error accessing microphone:', error);
-      setStatus(`iOS Debug: ${error.name} - ${error.message}`);
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      setStatus('Processing recording...');
-    }
-  };
-
-  const processRecording = async (audioBlob) => {
-    try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
-
-      const response = await fetch('https://ai-life-assistant-api-production.up.railway.app/api/recordings', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        const newRecording = await response.json();
-        onNewRecording(newRecording);
-        setStatus('Recording saved successfully!');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save recording');
-      }
-    } catch (error) {
-      console.error('Error processing recording:', error);
-      setStatus(`Processing Error: ${error.name} - ${error.message}`);
-    }
-
-    setTimeout(() => setStatus('Ready to record'), 3000);
-  };
-
-  const deleteRecording = async (recordingId) => {
-    if (!window.confirm('Are you sure you want to delete this recording?')) {
-      return;
-    }
-
-    setDeletingIds(prev => new Set(prev).add(recordingId));
-
-    try {
-      const response = await fetch(`https://ai-life-assistant-api-production.up.railway.app/api/recordings/${recordingId}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        onDeleteRecording(recordingId);
-        setStatus('Recording deleted successfully!');
-        setTimeout(() => setStatus('Ready to record'), 2000);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete recording');
-      }
-    } catch (error) {
-      console.error('Error deleting recording:', error);
-      setStatus(`Delete error: ${error.message}`);
-      setTimeout(() => setStatus('Ready to record'), 3000);
+      console.error('Error fetching recordings:', error);
     } finally {
-      setDeletingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(recordingId);
-        return newSet;
-      });
+      setIsLoading(false);
     }
   };
 
-  const toggleRecording = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
+  const addRecording = (newRecording) => {
+    setRecordings(prev => [newRecording, ...prev]);
   };
 
-  const formatTimestamp = (timestamp) => {
-    return new Date(timestamp).toLocaleString();
+  const deleteRecording = (recordingId) => {
+    setRecordings(prev => prev.filter(recording => recording.id !== recordingId));
   };
+
+  if (isLoading) {
+    return (
+      <div className="loading">
+        <div className="loading-spinner"></div>
+        <p>Loading your AI Life Assistant...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="recording-section">
-      <h2 className="section-title">
-        📹 Quick Capture
-      </h2>
+    <div className="App">
+      <header className="app-header">
+        <h1>🎙️ AI Life Assistant</h1>
+        <p>Capture your life, query your memories</p>
+      </header>
       
-      <div className="recording-controls">
-        <button 
-          className={`record-btn ${isRecording ? 'recording' : ''}`}
-          onClick={toggleRecording}
-          disabled={status.includes('Processing')}
-        >
-          {isRecording ? '⏹️ Stop' : '🎤 Record'}
-        </button>
-        
-        <div className="status">
-          {status}
+      <main className="main-content">
+        <div className="content-grid">
+          <RecordingSection 
+            recordings={recordings}
+            onNewRecording={addRecording}
+            onDeleteRecording={deleteRecording}
+          />
+          <ChatSection recordings={recordings} />
         </div>
-      </div>
+      </main>
       
-      <div className="recordings-list">
-        <h3>Recent Recordings ({recordings.length})</h3>
-        
-        {recordings.length > 0 ? (
-          recordings.slice(0, 10).map((recording) => (
-            <div key={recording.id} className="recording-item">
-              <div className="recording-header">
-                <div className="recording-time">
-                  {formatTimestamp(recording.timestamp)}
-                </div>
-                <button
-                  className="delete-btn"
-                  onClick={() => deleteRecording(recording.id)}
-                  disabled={deletingIds.has(recording.id)}
-                  title="Delete recording"
-                >
-                  {deletingIds.has(recording.id) ? '⏳' : '🗑️'}
-                </button>
-              </div>
-              
-              <div className="recording-text">
-                {recording.text}
-              </div>
-              
-              {recording.entities && Object.keys(recording.entities).length > 0 && (
-                <div className="recording-entities">
-                  {Object.entries(recording.entities).map(([key, values]) => (
-                    values && values.length > 0 && (
-                      <span key={key} className={`entity-tag ${key}`}>
-                        {key}: {Array.isArray(values) ? values.join(', ') : values}
-                      </span>
-                    )
-                  ))}
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <div className="no-recordings">
-            <p>📝 No recordings yet</p>
-            <p>Press the record button above to start capturing your thoughts and memories!</p>
-          </div>
-        )}
-      </div>
+      <footer className="app-footer">
+        <p>Your personal AI assistant - {recordings.length} memories captured</p>
+      </footer>
     </div>
   );
-};
+}
 
-export default RecordingSection;
+export default App;
