@@ -40,7 +40,8 @@ const RecordingSection = ({ recordings, onNewRecording }) => {
     } catch (error) {
   console.error('Error accessing microphone:', error);
   setStatus(`iOS Debug: ${error.name} - ${error.message}`);
-};
+}
+  };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
