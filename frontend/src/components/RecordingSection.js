@@ -72,7 +72,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
-        processRecording(audioBlob);
+        processRecording(audioBlob, mimeType);
         
         // Clean up stream
         if (streamRef.current) {
@@ -140,7 +140,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
     }
   };
 
-  const processRecording = async (audioBlob) => {
+  const processRecording = async (audioBlob, mimeType = 'audio/wav') => {
     try {
       // Check if blob has content
       if (audioBlob.size === 0) {
@@ -148,6 +148,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
       }
 
       console.log(`Recording format: ${mimeType}, size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+      setStatus('📤 Uploading recording...');
 
       const formData = new FormData();
       
