@@ -40,22 +40,19 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
       
-      // Check if MediaRecorder is supported
-      if (!MediaRecorder.isTypeSupported('audio/webm')) {
-        if (!MediaRecorder.isTypeSupported('audio/mp4')) {
-          if (!MediaRecorder.isTypeSupported('audio/wav')) {
+      // Force WAV format for mobile to avoid compression issues
+      let mimeType = 'audio/wav';
+      
+      // Check if WAV is supported first (best quality)
+      if (!MediaRecorder.isTypeSupported('audio/wav')) {
+        if (!MediaRecorder.isTypeSupported('audio/webm')) {
+          if (!MediaRecorder.isTypeSupported('audio/mp4')) {
             throw new Error('No supported audio format found');
+          } else {
+            mimeType = 'audio/mp4';
           }
-        }
-      }
-
-      // Choose the best supported format
-      let mimeType = 'audio/webm';
-      if (isMobile()) {
-        if (MediaRecorder.isTypeSupported('audio/mp4')) {
-          mimeType = 'audio/mp4';
-        } else if (MediaRecorder.isTypeSupported('audio/wav')) {
-          mimeType = 'audio/wav';
+        } else {
+          mimeType = 'audio/webm';
         }
       }
 
@@ -150,7 +147,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
         throw new Error('Recording is empty');
       }
 
-      setStatus('📤 Uploading recording...');
+      console.log(`Recording format: ${mimeType}, size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
 
       const formData = new FormData();
       
