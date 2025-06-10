@@ -20,6 +20,8 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
 
   // Enhanced microphone permission and recording for mobile
   const startRecording = async () => {
+    let mimeType = 'audio/wav'; // Declare at function scope
+    
     try {
       setStatus('Requesting microphone access...');
       
@@ -41,8 +43,6 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
       streamRef.current = stream;
       
       // Force WAV format for mobile to avoid compression issues
-      let mimeType = 'audio/wav';
-      
       // Check if WAV is supported first (best quality)
       if (!MediaRecorder.isTypeSupported('audio/wav')) {
         if (!MediaRecorder.isTypeSupported('audio/webm')) {
