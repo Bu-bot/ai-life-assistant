@@ -8,62 +8,161 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
   const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
   const [textInput, setTextInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [microphoneSupported, setMicrophoneSupported] = useState(true);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const streamRef = useRef(null);
 
+  // Check if we're on mobile
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  };
+
+  // Enhanced microphone permission and recording for mobile
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setStatus('Requesting microphone access...');
       
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      // Enhanced constraints for mobile compatibility
+      const constraints = {
+        audio: {
+          echoCancellation: false, // Turn off processing that might degrade quality
+          noiseSuppression: false,
+          autoGainControl: true,
+          // Mobile-specific settings
+          channelCount: 1,
+          sampleRate: 44100, // Higher quality sample rate
+          sampleSize: 16
+        }
+      };
+
+      // Request microphone access
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      
+      // Check if MediaRecorder is supported
+      if (!MediaRecorder.isTypeSupported('audio/webm')) {
+        if (!MediaRecorder.isTypeSupported('audio/mp4')) {
+          if (!MediaRecorder.isTypeSupported('audio/wav')) {
+            throw new Error('No supported audio format found');
+          }
+        }
+      }
+
+      // Choose the best supported format
+      let mimeType = 'audio/webm';
+      if (isMobile()) {
+        if (MediaRecorder.isTypeSupported('audio/mp4')) {
+          mimeType = 'audio/mp4';
+        } else if (MediaRecorder.isTypeSupported('audio/wav')) {
+          mimeType = 'audio/wav';
+        }
+      }
+
+      const options = {
+        mimeType: mimeType,
+        audioBitsPerSecond: 128000 // Higher bitrate for better quality
+      };
+
+      mediaRecorderRef.current = new MediaRecorder(stream, options);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
 
       mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         processRecording(audioBlob);
         
-        // Stop all tracks to release microphone
-        stream.getTracks().forEach(track => track.stop());
+        // Clean up stream
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => {
+            track.stop();
+          });
+          streamRef.current = null;
+        }
       };
 
-      mediaRecorderRef.current.start();
+      mediaRecorderRef.current.onerror = (event) => {
+        console.error('MediaRecorder error:', event.error);
+        setStatus(`Recording error: ${event.error.message}`);
+        stopRecording();
+      };
+
+      // Start recording
+      mediaRecorderRef.current.start(100); // Collect data every 100ms
       setIsRecording(true);
-      setStatus('Recording... speak now!');
+      setStatus('🎤 Recording... tap stop when done');
       
-      // Auto-stop after 2 minutes
+      // Auto-stop after 2 minutes for mobile battery conservation
       setTimeout(() => {
-        if (isRecording) {
+        if (isRecording && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           stopRecording();
         }
       }, 120000);
 
     } catch (error) {
       console.error('Error accessing microphone:', error);
-      setStatus(`Microphone error: ${error.message}`);
-      // Suggest text input if voice fails
+      setMicrophoneSupported(false);
+      
+      // More helpful error messages for mobile
+      if (error.name === 'NotAllowedError') {
+        setStatus('🚫 Microphone permission denied. Please allow microphone access in your browser settings, then refresh and try again.');
+      } else if (error.name === 'NotFoundError') {
+        setStatus('🎤 No microphone found. Please check your device settings.');
+      } else if (error.name === 'NotSupportedError') {
+        setStatus('📱 Voice recording not supported on this browser. Using text input instead...');
+      } else {
+        setStatus(`❌ Microphone error: ${error.message}. Try text input instead →`);
+      }
+      
+      // Auto-switch to text mode after error
       setTimeout(() => {
-        setStatus('Try using text input instead →');
         setInputMode('text');
+        setStatus('Use text input below instead of voice recording');
       }, 3000);
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      setStatus('Processing recording...');
+      setStatus('🔄 Processing recording...');
+    }
+    
+    // Clean up stream immediately
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
+      streamRef.current = null;
     }
   };
 
   const processRecording = async (audioBlob) => {
     try {
+      // Check if blob has content
+      if (audioBlob.size === 0) {
+        throw new Error('Recording is empty');
+      }
+
+      setStatus('📤 Uploading recording...');
+
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
+      
+      // Use appropriate filename based on mime type
+      let filename = 'recording.wav';
+      if (audioBlob.type.includes('webm')) {
+        filename = 'recording.webm';
+      } else if (audioBlob.type.includes('mp4')) {
+        filename = 'recording.mp4';
+      }
+      
+      formData.append('audio', audioBlob, filename);
 
       const response = await fetch('https://ai-life-assistant-api-production.up.railway.app/api/recordings', {
         method: 'POST',
@@ -73,24 +172,30 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
       if (response.ok) {
         const newRecording = await response.json();
         onNewRecording(newRecording);
-        setStatus('Recording saved successfully!');
+        setStatus('✅ Recording saved successfully!');
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to save recording');
       }
     } catch (error) {
       console.error('Error processing recording:', error);
-      setStatus(`Processing Error: ${error.name} - ${error.message}`);
+      setStatus(`❌ Processing Error: ${error.message}`);
+      
+      // Suggest text input if recording fails
+      setTimeout(() => {
+        setStatus('Try using text input instead →');
+        setInputMode('text');
+      }, 3000);
     }
 
-    setTimeout(() => setStatus('Ready to record'), 3000);
+    setTimeout(() => setStatus('Ready to record'), 5000);
   };
 
   const submitTextInput = async () => {
     if (!textInput.trim()) return;
 
     setIsSubmitting(true);
-    setStatus('Saving text...');
+    setStatus('💾 Saving text...');
 
     try {
       const response = await fetch('https://ai-life-assistant-api-production.up.railway.app/api/recordings', {
@@ -105,7 +210,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
         const newRecording = await response.json();
         onNewRecording(newRecording);
         setTextInput('');
-        setStatus('Text saved successfully!');
+        setStatus('✅ Text saved successfully!');
         setTimeout(() => setStatus('Ready to record'), 2000);
       } else {
         const errorData = await response.json();
@@ -113,7 +218,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
       }
     } catch (error) {
       console.error('Error saving text:', error);
-      setStatus(`Error: ${error.message}`);
+      setStatus(`❌ Error: ${error.message}`);
       setTimeout(() => setStatus('Ready to record'), 3000);
     } finally {
       setIsSubmitting(false);
@@ -126,7 +231,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
   };
 
   const handleTextKeyPress = (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaCmd)) {
       e.preventDefault();
       submitTextInput();
     }
@@ -146,7 +251,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
 
       if (response.ok) {
         onDeleteRecording(recordingId);
-        setStatus('Recording deleted successfully!');
+        setStatus('✅ Recording deleted successfully!');
         setTimeout(() => setStatus('Ready to record'), 2000);
       } else {
         const errorData = await response.json();
@@ -154,7 +259,7 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
       }
     } catch (error) {
       console.error('Error deleting recording:', error);
-      setStatus(`Delete error: ${error.message}`);
+      setStatus(`❌ Delete error: ${error.message}`);
       setTimeout(() => setStatus('Ready to record'), 3000);
     } finally {
       setDeletingIds(prev => {
@@ -177,6 +282,13 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
     return new Date(timestamp).toLocaleString();
   };
 
+  // Auto-switch to text mode on mobile if voice fails
+  React.useEffect(() => {
+    if (isMobile() && !microphoneSupported) {
+      setInputMode('text');
+    }
+  }, [microphoneSupported]);
+
   return (
     <div className="recording-section">
       <h2 className="section-title">
@@ -188,8 +300,9 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
         <button 
           className={`mode-btn ${inputMode === 'voice' ? 'active' : ''}`}
           onClick={() => setInputMode('voice')}
+          disabled={!microphoneSupported}
         >
-          🎤 Voice
+          🎤 Voice {!microphoneSupported && '(unavailable)'}
         </button>
         <button 
           className={`mode-btn ${inputMode === 'text' ? 'active' : ''}`}
@@ -198,26 +311,41 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
           ✏️ Text
         </button>
       </div>
+
+      {/* Mobile-optimized hint */}
+      {isMobile() && inputMode === 'voice' && (
+        <div className="mobile-hint">
+          📱 <strong>Mobile tip:</strong> Grant microphone permission when prompted. If voice recording doesn't work, use text input instead.
+        </div>
+      )}
       
       {/* Voice Recording Mode */}
-      {inputMode === 'voice' && (
+      {inputMode === 'voice' && microphoneSupported && (
         <div className="recording-controls">
           <button 
             className={`record-btn ${isRecording ? 'recording' : ''}`}
             onClick={toggleRecording}
-            disabled={status.includes('Processing')}
+            disabled={status.includes('Processing') || status.includes('Uploading')}
           >
-            {isRecording ? '⏹️ Stop' : '🎤 Record'}
+            {isRecording ? '⏹️ Stop Recording' : '🎤 Start Recording'}
           </button>
           
           <div className="status">
             {status}
           </div>
+
+          {/* Recording indicator for mobile */}
+          {isRecording && (
+            <div className="recording-indicator">
+              <span className="pulse-dot"></span>
+              Recording in progress...
+            </div>
+          )}
         </div>
       )}
 
       {/* Text Input Mode */}
-      {inputMode === 'text' && (
+      {(inputMode === 'text' || !microphoneSupported) && (
         <div className="text-input-controls">
           <form onSubmit={handleTextSubmit}>
             <textarea
