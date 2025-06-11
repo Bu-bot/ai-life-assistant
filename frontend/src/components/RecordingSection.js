@@ -1,5 +1,6 @@
 // frontend/src/components/RecordingSection.js
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import TaskCompletionModal from './TaskCompletionModal';
 
 const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -9,6 +10,9 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
   const [textInput, setTextInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [microphoneSupported, setMicrophoneSupported] = useState(true);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [detectedCompletion, setDetectedCompletion] = useState(null);
+  const [pendingTasks, setPendingTasks] = useState([]);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
@@ -171,6 +175,12 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
         const newRecording = await response.json();
         onNewRecording(newRecording);
         setStatus('✅ Recording saved successfully!');
+        
+        // Check for task completion detection
+        if (newRecording.taskCompletionDetected && newRecording.taskCompletionDetected.hasCompletion) {
+          setDetectedCompletion(newRecording.taskCompletionDetected);
+          setShowTaskModal(true);
+        }
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to save recording');
@@ -209,6 +219,13 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
         onNewRecording(newRecording);
         setTextInput('');
         setStatus('✅ Text saved successfully!');
+        
+        // Check for task completion detection
+        if (newRecording.taskCompletionDetected && newRecording.taskCompletionDetected.hasCompletion) {
+          setDetectedCompletion(newRecording.taskCompletionDetected);
+          setShowTaskModal(true);
+        }
+        
         setTimeout(() => setStatus('Ready to record'), 2000);
       } else {
         const errorData = await response.json();
@@ -276,16 +293,37 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
     }
   };
 
+  const handleTaskCompleted = (taskId) => {
+    // Remove completed task from pending tasks
+    setPendingTasks(prev => prev.filter(task => task.id !== taskId));
+    setStatus('✅ Task marked as completed!');
+    setTimeout(() => setStatus('Ready to record'), 2000);
+  };
+
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp).toLocaleString();
   };
 
   // Auto-switch to text mode on mobile if voice fails
-  React.useEffect(() => {
+  useEffect(() => {
     if (isMobile() && !microphoneSupported) {
       setInputMode('text');
     }
+    // Fetch pending tasks on component mount
+    fetchPendingTasks();
   }, [microphoneSupported]);
+
+  const fetchPendingTasks = async () => {
+    try {
+      const response = await fetch('https://ai-life-assistant-api-production.up.railway.app/api/tasks/pending');
+      if (response.ok) {
+        const tasks = await response.json();
+        setPendingTasks(tasks);
+      }
+    } catch (error) {
+      console.error('Error fetching pending tasks:', error);
+    }
+  };
 
   return (
     <div className="recording-section">
@@ -421,6 +459,14 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
           </div>
         )}
       </div>
+      
+      <TaskCompletionModal
+        isOpen={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        detectedCompletion={detectedCompletion}
+        pendingTasks={pendingTasks}
+        onTaskCompleted={handleTaskCompleted}
+      />
     </div>
   );
 };

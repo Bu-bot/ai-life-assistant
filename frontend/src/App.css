@@ -817,3 +817,227 @@ body {
   color: #f57c00;
   border: 1px solid #ffcc02;
 }
+
+/* Add this to your App.css */
+
+/* Task Completion Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.task-completion-modal {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background: #f1f3f4;
+}
+
+.modal-body {
+  padding: 20px 24px;
+}
+
+.detection-info {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.detection-info p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.detection-info strong {
+  color: #333;
+}
+
+.task-selection p {
+  margin-bottom: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.task-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-option:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.task-option input[type="radio"] {
+  margin-top: 4px;
+  accent-color: #667eea;
+}
+
+.task-option input[type="radio"]:checked + .task-details {
+  color: #667eea;
+}
+
+.task-details {
+  flex: 1;
+}
+
+.task-description {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.task-meta {
+  font-size: 12px;
+  color: #666;
+}
+
+.no-tasks {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.no-tasks p {
+  margin: 8px 0;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  justify-content: flex-end;
+}
+
+.complete-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.complete-btn:hover:not(:disabled) {
+  background: #45a049;
+}
+
+.complete-btn:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #f1f3f4;
+  color: #333;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #e1e8ed;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 10px;
+  }
+  
+  .modal-content {
+    max-height: 90vh;
+  }
+  
+  .modal-header, .modal-body, .modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .task-option {
+    padding: 12px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .complete-btn, .cancel-btn {
+    width: 100%;
+  }
+}
