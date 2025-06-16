@@ -141,6 +141,15 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
 
       if (response.ok) {
         const newRecording = await response.json();
+        
+        // Enhance the recording with project info for immediate display
+        if (selectedProject) {
+          newRecording.project = {
+            name: selectedProject.name,
+            color: selectedProject.color
+          };
+        }
+        
         onNewRecording(newRecording);
         setStatus('✅ Recording saved successfully!');
         
@@ -189,6 +198,15 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
 
       if (response.ok) {
         const newRecording = await response.json();
+        
+        // Enhance the recording with project info for immediate display
+        if (selectedProject) {
+          newRecording.project = {
+            name: selectedProject.name,
+            color: selectedProject.color
+          };
+        }
+        
         onNewRecording(newRecording);
         setTextInput('');
         setStatus('✅ Text saved successfully!');
