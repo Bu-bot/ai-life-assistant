@@ -1845,3 +1845,213 @@ body {
     flex-direction: column;
   }
 }
+
+/* Add this to your App.css */
+
+/* Project Selector Styles */
+.project-selector-section {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e1e8ed;
+}
+
+.project-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  font-size: 0.95em;
+}
+
+.project-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.project-select {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 1em;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.project-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.new-project-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background 0.2s ease;
+}
+
+.new-project-btn:hover {
+  background: #45a049;
+}
+
+.selected-project-info {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 6px;
+  font-size: 0.9em;
+  color: #667eea;
+}
+
+.project-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Quick Create Project */
+.quick-create-project {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  border: 1px solid #4caf50;
+}
+
+.project-name-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+.project-name-input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+.create-project-quick-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.create-project-quick-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-project-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+/* Enhanced Recording Item */
+.recording-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recording-project {
+  display: flex;
+  align-items: center;
+  font-size: 0.8em;
+  color: #666;
+  font-weight: 500;
+}
+
+.recording-project .project-color-dot {
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+}
+
+/* Enhanced Mobile Hint */
+.mobile-hint {
+  background: #e3f2fd;
+  border: 1px solid #2196f3;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 14px;
+  color: #1976d2;
+}
+
+/* Enhanced Text Input Placeholder */
+.text-input-area {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 1em;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.3s ease;
+  margin-bottom: 15px;
+}
+
+.text-input-area:focus {
+  border-color: #667eea;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .project-selector-section {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .project-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .new-project-btn {
+    align-self: stretch;
+    padding: 14px 16px;
+  }
+  
+  .quick-create-project {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .create-project-quick-btn,
+  .cancel-project-btn {
+    flex: 1;
+    padding: 12px;
+  }
+  
+  .recording-meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
