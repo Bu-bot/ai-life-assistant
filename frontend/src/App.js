@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import MenuBar from './components/MenuBar';
 import RecordingSection from './components/RecordingSection';
 import ChatSection from './components/ChatSection';
+import ProjectsPage from './components/ProjectsPage';
 import './App.css';
 
 function App() {
@@ -87,6 +88,9 @@ function App() {
             <ChatSection recordings={recordings} />
           </div>
         );
+
+      case 'projects':
+        return <ProjectsPage />;
 
       case 'tasks':
         return (

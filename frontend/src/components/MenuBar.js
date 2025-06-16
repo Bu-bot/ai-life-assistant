@@ -12,6 +12,12 @@ const MenuBar = ({ currentPage, onPageChange, recordingsCount }) => {
       description: 'Record & Chat'
     },
     {
+      id: 'projects',
+      label: 'Projects',
+      icon: '📁',
+      description: 'Manage Projects'
+    },
+    {
       id: 'tasks',
       label: 'Tasks',
       icon: '✅',

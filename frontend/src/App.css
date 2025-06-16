@@ -1485,3 +1485,363 @@ body {
   flex-direction: column;
   width: 100%;
 }
+
+/* Add this to your App.css */
+
+/* Projects Page Styles */
+.projects-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.projects-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: white;
+}
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-content h2 {
+  font-size: 2.5em;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.header-content p {
+  font-size: 1.2em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.create-project-btn {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.create-project-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+}
+
+.error-message {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid #f44336;
+  color: #f44336;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Projects Grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.project-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.project-color-bar {
+  height: 6px;
+  width: 100%;
+}
+
+.project-content {
+  padding: 24px;
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.project-name {
+  font-size: 1.3em;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex: 1;
+}
+
+.project-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.view-btn, .delete-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1em;
+  transition: background 0.2s ease;
+}
+
+.view-btn:hover {
+  background: rgba(33, 150, 243, 0.1);
+}
+
+.delete-btn:hover {
+  background: rgba(244, 67, 54, 0.1);
+}
+
+.project-description {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.project-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85em;
+  color: #999;
+}
+
+.recordings-count {
+  font-weight: 500;
+}
+
+/* Project Form Styles */
+.project-form {
+  padding: 0;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 1em;
+  transition: border-color 0.3s ease;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Color Selection */
+.color-selection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.color-input {
+  width: 50px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  border: 2px solid #e1e8ed !important;
+  border-radius: 8px !important;
+  cursor: pointer;
+}
+
+.color-presets {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  flex: 1;
+}
+
+.color-preset {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-preset:hover {
+  transform: scale(1.1);
+}
+
+.color-preset.selected {
+  border-color: #333;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+
+.cancel-btn {
+  background: #f1f3f4;
+  color: #333;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #e1e8ed;
+}
+
+.create-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.create-btn:hover:not(:disabled) {
+  background: #5a6fd8;
+}
+
+.create-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Project Recordings Modal */
+.project-recordings-modal {
+  max-width: 800px;
+  max-height: 80vh;
+}
+
+.project-recordings-modal .recordings-list {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.project-recordings-modal .recording-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid #667eea;
+}
+
+.project-recordings-modal .recording-time {
+  font-size: 0.85em;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.project-recordings-modal .recording-text {
+  color: #333;
+  line-height: 1.4;
+}
+
+.project-recordings-modal .no-recordings {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .projects-page {
+    padding: 20px 15px;
+  }
+  
+  .projects-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .header-content h2 {
+    font-size: 2em;
+  }
+  
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .project-card {
+    margin: 0;
+  }
+  
+  .project-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .project-actions {
+    align-self: flex-end;
+  }
+  
+  .color-presets {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+}
