@@ -2055,3 +2055,826 @@ body {
     gap: 6px;
   }
 }
+
+/* Add these styles to your App.css - Usage Page Styles */
+
+/* Usage Page Main Layout */
+.usage-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.usage-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: white;
+}
+
+.usage-error {
+  text-align: center;
+  color: white;
+  padding: 40px;
+}
+
+.retry-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 16px;
+  font-weight: 500;
+}
+
+/* Usage Header */
+.usage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.usage-header .header-content h2 {
+  font-size: 2.5em;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.usage-header .header-content p {
+  font-size: 1.2em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.timeframe-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  font-weight: 500;
+}
+
+.timeframe-select {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+/* Cost Overview Cards */
+.cost-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.cost-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease;
+}
+
+.cost-card:hover {
+  transform: translateY(-2px);
+}
+
+.cost-card.total {
+  border-left: 4px solid #4caf50;
+}
+
+.cost-card.openai {
+  border-left: 4px solid #ff6b6b;
+}
+
+.cost-card.infrastructure {
+  border-left: 4px solid #667eea;
+}
+
+.cost-card.per-recording {
+  border-left: 4px solid #ffa726;
+}
+
+.cost-icon {
+  font-size: 2.5em;
+  opacity: 0.8;
+}
+
+.cost-content h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.cost-amount {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 4px;
+}
+
+.cost-period,
+.cost-details {
+  font-size: 0.9em;
+  color: #666;
+}
+
+/* Usage Sections */
+.usage-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.usage-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.usage-section h3 {
+  margin: 0 0 24px 0;
+  color: #333;
+  font-size: 1.4em;
+  font-weight: 600;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 12px;
+}
+
+/* Usage Grid */
+.usage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.usage-metric {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #e1e8ed;
+}
+
+.metric-label {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.metric-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.metric-number {
+  font-size: 1.6em;
+  font-weight: 700;
+  color: #333;
+}
+
+.metric-unit {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.metric-cost {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.stat-item {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #e1e8ed;
+  transition: transform 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  font-size: 2em;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.stat-number {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #333;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Infrastructure Grid */
+.infrastructure-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.service-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e1e8ed;
+}
+
+.service-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.service-icon {
+  font-size: 1.5em;
+}
+
+.service-name {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.service-status {
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.service-status.online {
+  color: #4caf50;
+}
+
+.service-status.offline {
+  color: #f44336;
+}
+
+.service-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.service-metric {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.service-cost {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #2e7d32;
+  text-align: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e1e8ed;
+}
+
+/* Tips Grid */
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.tip-card {
+  background: #fff3e0;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #ffcc02;
+  border-left: 4px solid #ff9800;
+}
+
+.tip-icon {
+  font-size: 1.5em;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.tip-content h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.tip-content p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+/* Monthly Projection */
+.projection-section {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 32px;
+}
+
+.projection-section h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 1.4em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.projection-content {
+  display: flex;
+  justify-content: center;
+}
+
+.projection-card {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+}
+
+.projection-title {
+  font-size: 1em;
+  opacity: 0.9;
+  margin-bottom: 12px;
+}
+
+.projection-amount {
+  font-size: 2.5em;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.projection-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+/* Footer */
+.usage-footer {
+  text-align: center;
+  margin-top: 40px;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9em;
+}
+
+.usage-footer p {
+  margin: 8px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .usage-page {
+    padding: 20px 15px;
+  }
+  
+  .usage-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .usage-header .header-content h2 {
+    font-size: 2em;
+  }
+  
+  .cost-overview {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .cost-card {
+    padding: 20px;
+  }
+  
+  .cost-amount {
+    font-size: 1.5em;
+  }
+  
+  .usage-section {
+    padding: 20px;
+  }
+  
+  .usage-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .infrastructure-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .projection-card {
+    padding: 24px;
+  }
+  
+  .projection-amount {
+    font-size: 2em;
+  }
+}
+
+/* Add these styles to your App.css - Real Usage Tracker Styles */
+
+/* Header Controls */
+.header-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.sync-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-btn:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.sync-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sync-status {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9em;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+
+/* Enhanced Cost Cards */
+.cost-card.railway {
+  border-left: 4px solid #7b68ee;
+}
+
+.cost-card.supabase {
+  border-left: 4px solid #3ecf8e;
+}
+
+/* Vendor Status Section */
+.vendor-status-section {
+  margin-bottom: 32px;
+}
+
+.vendor-status-section h3 {
+  color: white;
+  margin-bottom: 20px;
+  font-size: 1.4em;
+  text-align: center;
+}
+
+.vendor-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.vendor-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.vendor-card:hover {
+  transform: translateY(-2px);
+}
+
+.vendor-card.manual {
+  opacity: 0.8;
+  border-left: 4px solid #ff9800;
+}
+
+.vendor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e1e8ed;
+}
+
+.vendor-icon {
+  font-size: 1.5em;
+}
+
+.vendor-name {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.vendor-status {
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.vendor-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vendor-metrics .metric {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.vendor-metrics .metric span:last-child {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Configuration Grid */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.config-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e1e8ed;
+}
+
+.config-icon {
+  font-size: 1.2em;
+}
+
+.config-label {
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.config-status {
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+/* Real-time indicators */
+.usage-metric.real-time {
+  border-left: 3px solid #4caf50;
+}
+
+.usage-metric.real-time .metric-cost {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.usage-metric.estimated {
+  border-left: 3px solid #ff9800;
+}
+
+.usage-metric.estimated .metric-cost {
+  color: #ff9800;
+  font-style: italic;
+}
+
+/* Enhanced projection card */
+.projection-card {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(76, 175, 80, 0.3);
+  position: relative;
+}
+
+.projection-card::before {
+  content: '📡';
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+
+/* Loading states */
+.vendor-card.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.vendor-card.loading::after {
+  content: '⏳';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2em;
+}
+
+/* Error states */
+.vendor-card.error {
+  border-left: 4px solid #f44336;
+  background: #ffebee;
+}
+
+.vendor-card.error .vendor-status {
+  color: #f44336;
+}
+
+/* Success states */
+.vendor-card.connected {
+  border-left: 4px solid #4caf50;
+}
+
+.vendor-card.connected .vendor-status {
+  color: #4caf50;
+}
+
+/* Enhanced footer */
+.usage-footer {
+  text-align: center;
+  margin-top: 40px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9em;
+}
+
+.usage-footer p {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .header-controls {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+  
+  .sync-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .vendor-status-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .projection-card {
+    margin: 0 10px;
+    padding: 24px;
+  }
+  
+  .usage-footer p {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+/* Animation for real-time updates */
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+.vendor-card.connected {
+  animation: pulse-green 2s infinite;
+}
+
+/* Real-time data badges */
+.real-time-badge {
+  background: #4caf50;
+  color: white;
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.estimated-badge {
+  background: #ff9800;
+  color: white;
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.manual-badge {
+  background: #666;
+  color: white;
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

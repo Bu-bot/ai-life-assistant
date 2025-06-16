@@ -4,6 +4,7 @@ import MenuBar from './components/MenuBar';
 import RecordingSection from './components/RecordingSection';
 import ChatSection from './components/ChatSection';
 import ProjectsPage from './components/ProjectsPage';
+import UsagePage from './components/UsagePage'; // ADD THIS IMPORT
 import './App.css';
 
 function App() {
@@ -137,26 +138,7 @@ function App() {
         );
 
       case 'usage':
-        return (
-          <div className="page-content">
-            <div className="page-header">
-              <h2>💰 Usage & Costs</h2>
-              <p>Track your API usage and application costs</p>
-            </div>
-            <div className="placeholder-content">
-              <div className="feature-placeholder">
-                <h3>🚧 Coming Soon</h3>
-                <p>Usage tracking dashboard will be available here</p>
-                <ul>
-                  <li>OpenAI API usage and costs</li>
-                  <li>Railway hosting costs</li>
-                  <li>Supabase database usage</li>
-                  <li>Vercel deployment costs</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        );
+        return <UsagePage />; // REPLACE THE PLACEHOLDER WITH THIS
 
       case 'settings':
         return (
