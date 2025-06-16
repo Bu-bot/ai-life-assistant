@@ -329,7 +329,54 @@ const RecordingSection = ({ recordings, onNewRecording, onDeleteRecording }) => 
     }
   };
 
-  // [Keep all other existing methods - deleteRecording, handleTaskCompleted, etc.]
+  const deleteRecording = async (recordingId) => {
+    if (!window.confirm('Are you sure you want to delete this recording?')) {
+      return;
+    }
+
+    setDeletingIds(prev => new Set(prev).add(recordingId));
+
+    try {
+      const response = await fetch(`${API_BASE}/api/recordings/${recordingId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        onDeleteRecording(recordingId);
+        setStatus('✅ Recording deleted successfully!');
+        setTimeout(() => setStatus('Ready to record'), 2000);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete recording');
+      }
+    } catch (error) {
+      console.error('Error deleting recording:', error);
+      setStatus(`❌ Delete error: ${error.message}`);
+      setTimeout(() => setStatus('Ready to record'), 3000);
+    } finally {
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(recordingId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleTextSubmit = (e) => {
+    e.preventDefault();
+    submitTextInput();
+  };
+
+  const handleTextKeyPress = (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaCmd)) {
+      e.preventDefault();
+      submitTextInput();
+    }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
+  };
 
   return (
     <div className="recording-section">
